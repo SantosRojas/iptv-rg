@@ -1,0 +1,144 @@
+---
+/**
+ * ChannelList - Componente principal de la lista de canales
+ * Compuesto por subcomponentes reutilizables
+ */
+import { getIptvService } from '../application';
+import ChannelHeader from './channel/ChannelHeader.astro';
+import ChannelFilters from './channel/ChannelFilters.astro';
+import ChannelGrid from './channel/ChannelGrid.astro';
+import ChannelCounter from './channel/ChannelCounter.astro';
+
+// Obtener servicio IPTV
+const iptvService = getIptvService();
+
+// Obtener países y categorías usando la arquitectura limpia
+const countries = await iptvService.getAvailableCountries();
+const categories = await iptvService.getAvailableCategories();
+---
+
+<aside class="channel-sidebar">
+  <ChannelHeader title="📺 Canales IPTV" />
+  <ChannelFilters countries={countries} categories={categories} />
+  <ChannelGrid />
+  <ChannelCounter count={0} />
+</aside>
+
+<style>
+  .channel-sidebar {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  @media (max-width: 1024px) {
+    .channel-sidebar {
+      height: auto;
+      max-height: 500px;
+    }
+  }
+</style>
+
+<script>
+  import { 
+    getChannelClientService, 
+    ChannelListRenderer,
+    toast,
+    type ChannelWithStream 
+  } from '../client';
+
+  /**
+   * Controlador del componente ChannelList
+   * Implementa el patrón Controller para separar la lógica de la vista
+   */
+  class ChannelListController {
+    private service = getChannelClientService();
+    private renderer: ChannelListRenderer;
+    
+    // Elementos del DOM
+    private countryFilter: HTMLSelectElement;
+    private categoryFilter: HTMLSelectElement;
+    private loadBtn: HTMLButtonElement;
+    private channelSearch: HTMLInputElement;
+    private emptyState: HTMLElement;
+    private loadingChannels: HTMLElement;
+
+    constructor() {
+      // Inicializar elementos del DOM
+      this.countryFilter = document.getElementById('country-filter') as HTMLSelectElement;
+      this.categoryFilter = document.getElementById('category-filter') as HTMLSelectElement;
+      this.loadBtn = document.getElementById('load-channels-btn') as HTMLButtonElement;
+      this.channelSearch = document.getElementById('channel-search') as HTMLInputElement;
+      this.emptyState = document.getElementById('empty-state') as HTMLElement;
+      this.loadingChannels = document.getElementById('loading-channels') as HTMLElement;
+
+      // Inicializar renderer
+      this.renderer = new ChannelListRenderer(
+        'channels-container',
+        'channel-count',
+        (event) => this.onChannelSelected(event.channel)
+      );
+
+      // Configurar event listeners
+      this.setupEventListeners();
+    }
+
+    private setupEventListeners(): void {
+      this.loadBtn.addEventListener('click', () => this.handleLoadChannels());
+      this.channelSearch.addEventListener('input', (e) => this.handleSearch(e));
+    }
+
+    private async handleLoadChannels(): Promise<void> {
+      const country = this.countryFilter.value;
+      const category = this.categoryFilter.value;
+
+      if (!country && !category) {
+        toast.warning('Por favor, selecciona al menos un país o una categoría', 'Filtro requerido');
+        return;
+      }
+
+      this.showLoading(true);
+
+      try {
+        const channels = await this.service.fetchChannels({
+          country: country || undefined,
+          category: category || undefined,
+          limit: 200,
+        });
+
+        this.renderer.render(channels);
+      } catch (error) {
+        console.error('Error loading channels:', error);
+        this.renderer.renderError();
+      } finally {
+        this.showLoading(false);
+      }
+    }
+
+    private handleSearch(event: Event): void {
+      const target = event.target as HTMLInputElement;
+      const searchTerm = target.value;
+      const filtered = this.service.filterBySearch(searchTerm);
+      this.renderer.render(filtered);
+    }
+
+    private showLoading(loading: boolean): void {
+      this.loadBtn.disabled = loading;
+      this.loadBtn.classList.toggle('loading', loading);
+      this.emptyState.style.display = 'none';
+      this.loadingChannels.classList.toggle('active', loading);
+    }
+
+    private onChannelSelected(channel: ChannelWithStream): void {
+      console.log('Channel selected:', channel.name);
+    }
+  }
+
+  // Inicializar controlador cuando el DOM esté listo
+  new ChannelListController();
+</script>

@@ -1,0 +1,323 @@
+---
+interface Props {
+	id?: string;
+}
+
+const { id = "video-player" } = Astro.props;
+---
+
+<div class="player-container">
+	<div class="player-header">
+		<div class="channel-info">
+			<span class="live-badge">EN VIVO</span>
+			<h2 id="current-channel-name">Selecciona un canal</h2>
+		</div>
+		<button class="fullscreen-btn" id="fullscreen-btn" title="Pantalla completa">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+			</svg>
+		</button>
+	</div>
+	
+	<div class="video-wrapper" id="video-wrapper">
+		<video id={id} class="video-element" controls playsinline>
+			<p>Tu navegador no soporta video HTML5.</p>
+		</video>
+		<div class="video-placeholder" id="video-placeholder">
+			<div class="placeholder-content">
+				<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+					<rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+					<polyline points="17 2 12 7 7 2"/>
+				</svg>
+				<p>Selecciona un canal para comenzar</p>
+			</div>
+		</div>
+		<div class="loading-overlay" id="loading-overlay">
+			<div class="spinner"></div>
+			<p>Cargando canal...</p>
+		</div>
+	</div>
+</div>
+
+<style>
+	.player-container {
+		background: rgba(0, 0, 0, 0.4);
+		border-radius: 16px;
+		overflow: hidden;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.player-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 16px 20px;
+		background: rgba(0, 0, 0, 0.3);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.channel-info {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.live-badge {
+		background: #e94560;
+		color: white;
+		padding: 4px 10px;
+		border-radius: 4px;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.5px;
+		animation: pulse 2s infinite;
+	}
+
+	@keyframes pulse {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.7; }
+	}
+
+	.channel-info h2 {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #ffffff;
+	}
+
+	.fullscreen-btn {
+		background: rgba(255, 255, 255, 0.1);
+		border: none;
+		color: white;
+		padding: 10px;
+		border-radius: 8px;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.fullscreen-btn:hover {
+		background: #e94560;
+		transform: scale(1.05);
+	}
+
+	.video-wrapper {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		background: #000;
+	}
+
+	.video-element {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		display: none;
+	}
+
+	.video-element.active {
+		display: block;
+	}
+
+	.video-placeholder {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+	}
+
+	.video-placeholder.hidden {
+		display: none;
+	}
+
+	.placeholder-content {
+		text-align: center;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	.placeholder-content svg {
+		margin-bottom: 16px;
+		opacity: 0.5;
+	}
+
+	.placeholder-content p {
+		font-size: 1rem;
+	}
+
+	.loading-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		display: none;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		background: rgba(0, 0, 0, 0.8);
+		z-index: 10;
+	}
+
+	.loading-overlay.active {
+		display: flex;
+	}
+
+	.spinner {
+		width: 50px;
+		height: 50px;
+		border: 4px solid rgba(255, 255, 255, 0.1);
+		border-top-color: #e94560;
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+		margin-bottom: 16px;
+	}
+
+	@keyframes spin {
+		to { transform: rotate(360deg); }
+	}
+
+	.loading-overlay p {
+		color: rgba(255, 255, 255, 0.7);
+		font-size: 0.95rem;
+	}
+
+	@media (max-width: 768px) {
+		.player-header {
+			padding: 12px 16px;
+		}
+
+		.channel-info h2 {
+			font-size: 0.95rem;
+		}
+
+		.live-badge {
+			font-size: 10px;
+			padding: 3px 8px;
+		}
+	}
+</style>
+
+<script>
+	import Hls from 'hls.js';
+
+	// Elementos del DOM
+	const video = document.getElementById('video-player') as HTMLVideoElement;
+	const videoWrapper = document.getElementById('video-wrapper') as HTMLElement;
+	const placeholder = document.getElementById('video-placeholder') as HTMLElement;
+	const loadingOverlay = document.getElementById('loading-overlay') as HTMLElement;
+	const channelName = document.getElementById('current-channel-name') as HTMLElement;
+	const fullscreenBtn = document.getElementById('fullscreen-btn') as HTMLButtonElement;
+
+	let hls: Hls | null = null;
+
+	// Función para reproducir un canal
+	function playChannel(url: string, name: string) {
+		// Mostrar loading
+		loadingOverlay.classList.add('active');
+		placeholder.classList.add('hidden');
+		video.classList.add('active');
+		channelName.textContent = name;
+
+		// Destruir instancia anterior de HLS
+		if (hls) {
+			hls.destroy();
+			hls = null;
+		}
+
+		// Verificar si es un stream HLS
+		if (url.includes('.m3u8')) {
+			if (Hls.isSupported()) {
+				hls = new Hls({
+					enableWorker: true,
+					lowLatencyMode: true,
+				});
+				
+				hls.loadSource(url);
+				hls.attachMedia(video);
+				
+				hls.on(Hls.Events.MANIFEST_PARSED, () => {
+					loadingOverlay.classList.remove('active');
+					video.play().catch(console.error);
+				});
+
+				hls.on(Hls.Events.ERROR, (event, data) => {
+					console.error('HLS Error:', data);
+					if (data.fatal) {
+						loadingOverlay.classList.remove('active');
+						channelName.textContent = 'Error al cargar el canal';
+						
+						switch (data.type) {
+							case Hls.ErrorTypes.NETWORK_ERROR:
+								console.error('Error de red - intentando recuperar...');
+								hls?.startLoad();
+								break;
+							case Hls.ErrorTypes.MEDIA_ERROR:
+								console.error('Error de media - intentando recuperar...');
+								hls?.recoverMediaError();
+								break;
+							default:
+								hls?.destroy();
+								break;
+						}
+					}
+				});
+			} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+				// Safari nativo
+				video.src = url;
+				video.addEventListener('loadedmetadata', () => {
+					loadingOverlay.classList.remove('active');
+					video.play().catch(console.error);
+				}, { once: true });
+			}
+		} else {
+			// Stream directo (MP4, etc.)
+			video.src = url;
+			video.addEventListener('loadedmetadata', () => {
+				loadingOverlay.classList.remove('active');
+				video.play().catch(console.error);
+			}, { once: true });
+		}
+
+		video.addEventListener('error', () => {
+			loadingOverlay.classList.remove('active');
+			channelName.textContent = 'Error al cargar el canal';
+		}, { once: true });
+	}
+
+	// Escuchar evento de selección de canal
+	window.addEventListener('channel-selected', ((event: CustomEvent) => {
+		const { url, name } = event.detail;
+		if (url && name) {
+			playChannel(url, name);
+		}
+	}) as EventListener);
+
+	// Pantalla completa
+	fullscreenBtn.addEventListener('click', () => {
+		if (document.fullscreenElement) {
+			document.exitFullscreen();
+		} else {
+			videoWrapper.requestFullscreen().catch(console.error);
+		}
+	});
+
+	// Actualizar icono de pantalla completa
+	document.addEventListener('fullscreenchange', () => {
+		const isFullscreen = !!document.fullscreenElement;
+		fullscreenBtn.innerHTML = isFullscreen 
+			? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+				</svg>`
+			: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+				</svg>`;
+	});
+</script>

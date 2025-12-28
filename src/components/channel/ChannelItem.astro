@@ -1,0 +1,123 @@
+---
+/**
+ * ChannelItem - Representa un canal individual en el grid
+ * Puede usarse estáticamente en Astro o como template para renderizado dinámico
+ */
+interface Props {
+  id: string;
+  name: string;
+  streamUrl: string;
+  logoUrl?: string | null;
+  flag: string;
+  isActive?: boolean;
+}
+
+const { id, name, streamUrl, logoUrl, flag, isActive = false } = Astro.props;
+---
+
+<button 
+  class:list={["channel-item", { active: isActive }]}
+  data-url={streamUrl}
+  data-name={name}
+  data-id={id}
+  title={name}
+>
+  {logoUrl ? (
+    <>
+      <img 
+        class="channel-logo" 
+        src={logoUrl} 
+        alt={name} 
+        loading="lazy"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+      />
+      <span class="channel-logo-fallback" style="display:none;">{flag}</span>
+    </>
+  ) : (
+    <span class="channel-logo-fallback">{flag}</span>
+  )}
+  <span class="channel-tooltip">{name}</span>
+</button>
+
+<style>
+  .channel-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .channel-item:hover {
+    background: rgba(233, 69, 96, 0.2);
+    border-color: rgba(233, 69, 96, 0.6);
+    transform: scale(1.05);
+    z-index: 1;
+  }
+
+  .channel-item.active {
+    background: linear-gradient(135deg, rgba(233, 69, 96, 0.4) 0%, rgba(255, 107, 107, 0.3) 100%);
+    border-color: #e94560;
+    box-shadow: 0 0 15px rgba(233, 69, 96, 0.4);
+  }
+
+  .channel-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+  }
+
+  .channel-logo-fallback {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .channel-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+    margin-bottom: 5px;
+  }
+
+  .channel-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+  }
+
+  .channel-item:hover .channel-tooltip {
+    opacity: 1;
+  }
+
+  @media (max-width: 768px) {
+    .channel-item {
+      padding: 5px;
+    }
+  }
+</style>

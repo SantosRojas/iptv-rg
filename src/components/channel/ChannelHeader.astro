@@ -1,0 +1,28 @@
+---
+import SearchBox from '../ui/SearchBox.astro';
+
+interface Props {
+  title?: string;
+}
+
+const { title = "📺 Canales IPTV" } = Astro.props;
+---
+
+<div class="sidebar-header">
+  <h2>{title}</h2>
+  <SearchBox id="channel-search" placeholder="Buscar canal..." />
+</div>
+
+<style>
+  .sidebar-header {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .sidebar-header h2 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+</style>

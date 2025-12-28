@@ -1,46 +1,91 @@
-# Astro Starter Kit: Basics
+# 📺 IPTV Player
 
-```sh
-npm create astro@latest -- --template basics
+Un reproductor de televisión en línea moderno construido con **Astro** y **TypeScript**, que permite ver canales de TV de todo el mundo de forma gratuita.
+
+![IPTV Player](https://img.shields.io/badge/Astro-5.x-purple?style=flat-square&logo=astro)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=flat-square&logo=typescript)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+
+## ✨ Características
+
+- 🌍 **Miles de canales** de más de 200 países
+- 🔍 **Búsqueda y filtros** por país y categoría
+- 📱 **Diseño responsive** - funciona en desktop y móvil
+- 🎨 **UI moderna** con efectos de glass-morphism
+- ⚡ **Rendimiento optimizado** con lazy loading
+- 📋 **Soporte M3U** - carga tus propias listas
+- 🔔 **Notificaciones toast** elegantes
+
+## 🏗️ Arquitectura
+
+Este proyecto implementa una **Arquitectura Limpia (Clean Architecture)** para facilitar el mantenimiento y la escalabilidad:
+
+```
+src/
+├── domain/              # Entidades e interfaces
+├── infrastructure/      # Repositorios (APIs)
+├── application/         # Casos de uso y servicios
+├── client/              # Código del navegador
+├── components/          # Componentes Astro
+│   ├── ui/              # Componentes UI reutilizables
+│   └── channel/         # Componentes de canales
+├── layouts/             # Layouts
+└── pages/               # Páginas
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Para más detalles, ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## 🚀 Project Structure
+## 🚀 Inicio Rápido
 
-Inside of your Astro project, you'll see the following folders and files:
+```bash
+# Instalar dependencias
+npm install
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
+# Iniciar servidor de desarrollo
+npm run dev
+
+# Construir para producción
+npm run build
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## 🧞 Comandos
 
-## 🧞 Commands
+| Comando           | Acción                                          |
+| :---------------- | :---------------------------------------------- |
+| `npm install`     | Instala las dependencias                        |
+| `npm run dev`     | Inicia el servidor en `localhost:4321`          |
+| `npm run build`   | Construye el sitio para producción en `./dist/` |
+| `npm run preview` | Previsualiza el build antes de desplegar        |
 
-All commands are run from the root of the project, from a terminal:
+## 📡 Fuente de Canales
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Los canales de televisión son proporcionados por **[iptv-org](https://github.com/iptv-org/iptv)**, un proyecto de código abierto que recopila enlaces de transmisión IPTV disponibles públicamente de todo el mundo.
 
-## 👀 Want to learn more?
+### APIs utilizadas:
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- 📺 [Channels API](https://iptv-org.github.io/api/channels.json) - Lista de canales
+- 🎬 [Streams API](https://iptv-org.github.io/api/streams.json) - URLs de transmisión
+- 🖼️ [Logos API](https://iptv-org.github.io/api/logos.json) - Logos de canales
+
+> **Nota**: Este proyecto no aloja ningún contenido de video. Todos los streams son enlaces públicos recopilados por iptv-org.
+
+## 🛠️ Tecnologías
+
+- **[Astro](https://astro.build/)** - Framework web
+- **[TypeScript](https://www.typescriptlang.org/)** - Tipado estático
+- **[HLS.js](https://github.com/video-dev/hls.js/)** - Reproductor de streams HLS
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia MIT. Ver el archivo [LICENSE](LICENSE) para más detalles.
+
+## 🙏 Créditos
+
+- **[iptv-org](https://github.com/iptv-org)** - Por recopilar y mantener la base de datos de canales IPTV de todo el mundo
+- **[Astro](https://astro.build/)** - Por el increíble framework
+
+---
+
+<p align="center">
+  Hecho con ❤️ usando Astro
+</p>

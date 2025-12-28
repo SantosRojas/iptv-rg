@@ -1,0 +1,55 @@
+---
+import FilterSelect from '../ui/FilterSelect.astro';
+import LoadButton from '../ui/LoadButton.astro';
+import type { Country } from '../../domain/entities';
+import { capitalize } from '../../application/utils';
+
+interface Props {
+  countries: Country[];
+  categories: string[];
+}
+
+const { countries, categories } = Astro.props;
+
+// Transformar países a opciones
+const countryOptions = countries.map(country => ({
+  value: country.code,
+  label: `${country.flag} ${country.name}`
+}));
+
+// Transformar categorías a opciones
+const categoryOptions = categories.map(cat => ({
+  value: cat,
+  label: capitalize(cat)
+}));
+---
+
+<div class="filters-section">
+  <FilterSelect
+    id="country-filter"
+    label="País"
+    icon="🌍"
+    options={countryOptions}
+    placeholder="Todos los países"
+  />
+  
+  <FilterSelect
+    id="category-filter"
+    label="Categoría"
+    icon="📁"
+    options={categoryOptions}
+    placeholder="Todas las categorías"
+  />
+
+  <LoadButton id="load-channels-btn" text="Cargar Canales" />
+</div>
+
+<style>
+  .filters-section {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+</style>

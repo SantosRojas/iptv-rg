@@ -1,11 +1,391 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Header from '../components/Header.astro';
+import VideoPlayer from '../components/VideoPlayer.astro';
+import ChannelList from '../components/ChannelList.astro';
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="IPTV Player - Tu TV en línea">
+	<Header title="IPTV Player" />
+	
+	<main class="main-content">
+		<div class="content-grid">
+			<section class="player-section">
+				<VideoPlayer />
+			</section>
+			
+			<aside class="sidebar-section" id="sidebar-section">
+				<ChannelList />
+			</aside>
+		</div>
+	</main>
+
+	<footer class="main-footer">
+		<p>🎬 IPTV Player | Carga tu lista M3U para ver tus canales favoritos</p>
+	</footer>
 </Layout>
+
+<style>
+	.main-content {
+		max-width: 1600px;
+		margin: 0 auto;
+		padding: 24px;
+		min-height: calc(100vh - 140px);
+	}
+
+	.content-grid {
+		display: grid;
+		grid-template-columns: 1fr 380px;
+		gap: 24px;
+		align-items: start;
+	}
+
+	.player-section {
+		width: 100%;
+	}
+
+	.sidebar-section {
+		position: sticky;
+		top: 90px;
+		height: calc(100vh - 140px);
+		transition: all 0.3s ease;
+	}
+
+	.sidebar-section.hidden {
+		display: none;
+	}
+
+	.main-footer {
+		text-align: center;
+		padding: 20px;
+		color: rgba(255, 255, 255, 0.5);
+		font-size: 0.9rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+		background: rgba(0, 0, 0, 0.2);
+	}
+
+	@media (max-width: 1200px) {
+		.content-grid {
+			grid-template-columns: 1fr 320px;
+		}
+	}
+
+	@media (max-width: 1024px) {
+		.content-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.sidebar-section {
+			position: relative;
+			top: 0;
+			height: auto;
+			max-height: 500px;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.main-content {
+			padding: 16px;
+		}
+
+		.content-grid {
+			gap: 16px;
+		}
+
+		.sidebar-section {
+			max-height: 400px;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.main-content {
+			padding: 12px;
+		}
+
+		.content-grid {
+			gap: 12px;
+		}
+	}
+</style>
+
+<script>
+	// Importar HLS.js para reproducir streams M3U8
+	import Hls from 'hls.js';
+	import { toast } from '../client';
+
+	// Elementos del DOM
+	const video = document.getElementById('video-player') as HTMLVideoElement;
+	const videoPlaceholder = document.getElementById('video-placeholder');
+	const loadingOverlay = document.getElementById('loading-overlay');
+	const currentChannelName = document.getElementById('current-channel-name');
+	const channelList = document.getElementById('channel-list');
+	const searchInput = document.getElementById('channel-search') as HTMLInputElement;
+	const m3uInput = document.getElementById('m3u-input') as HTMLInputElement;
+	const m3uUrlInput = document.getElementById('m3u-url') as HTMLInputElement;
+	const loadUrlBtn = document.getElementById('load-url-btn');
+	const fullscreenBtn = document.getElementById('fullscreen-btn');
+	const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+	const sidebarSection = document.getElementById('sidebar-section');
+	const channelCountEl = document.getElementById('channel-count');
+	const videoWrapper = document.getElementById('video-wrapper');
+
+	let hls: Hls | null = null;
+	let currentChannelId: string | null = null;
+
+	// Función para reproducir un canal
+	function playChannel(url: string, name: string, id: string) {
+		if (!video) return;
+
+		// Mostrar loading
+		loadingOverlay?.classList.add('active');
+		videoPlaceholder?.classList.add('hidden');
+		video.classList.add('active');
+
+		// Actualizar nombre del canal
+		if (currentChannelName) {
+			currentChannelName.textContent = name;
+		}
+
+		// Marcar canal activo
+		document.querySelectorAll('.channel-item').forEach(item => {
+			item.classList.remove('active');
+			if (item.getAttribute('data-id') === id) {
+				item.classList.add('active');
+			}
+		});
+
+		currentChannelId = id;
+
+		// Destruir instancia anterior de HLS
+		if (hls) {
+			hls.destroy();
+			hls = null;
+		}
+
+		// Verificar si es un stream HLS
+		if (url.includes('.m3u8')) {
+			if (Hls.isSupported()) {
+				hls = new Hls({
+					enableWorker: true,
+					lowLatencyMode: true,
+				});
+
+				hls.loadSource(url);
+				hls.attachMedia(video);
+
+				hls.on(Hls.Events.MANIFEST_PARSED, () => {
+					loadingOverlay?.classList.remove('active');
+					video.play().catch(console.error);
+				});
+
+				hls.on(Hls.Events.ERROR, (event, data) => {
+					console.error('HLS Error:', data);
+					if (data.fatal) {
+						loadingOverlay?.classList.remove('active');
+						toast.error(`Error al cargar el canal: ${name}`, 'Error de reproducción');
+					}
+				});
+			} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+				// Safari nativo
+				video.src = url;
+				video.addEventListener('loadedmetadata', () => {
+					loadingOverlay?.classList.remove('active');
+					video.play().catch(console.error);
+				}, { once: true });
+			}
+		} else {
+			// Video normal
+			video.src = url;
+			video.addEventListener('loadedmetadata', () => {
+				loadingOverlay?.classList.remove('active');
+				video.play().catch(console.error);
+			}, { once: true });
+		}
+
+		video.onerror = () => {
+			loadingOverlay?.classList.remove('active');
+			toast.error(`Error al reproducir: ${name}`, 'Error de reproducción');
+		};
+	}
+
+	// Event listeners para canales
+	channelList?.addEventListener('click', (e) => {
+		const target = (e.target as HTMLElement).closest('.channel-item') as HTMLElement;
+		if (target) {
+			const url = target.getAttribute('data-url');
+			const name = target.getAttribute('data-name');
+			const id = target.getAttribute('data-id');
+			if (url && name && id) {
+				playChannel(url, name, id);
+			}
+		}
+	});
+
+	// Búsqueda de canales
+	searchInput?.addEventListener('input', (e) => {
+		const query = (e.target as HTMLInputElement).value.toLowerCase();
+		const channels = document.querySelectorAll('.channel-item');
+		let visibleCount = 0;
+
+		channels.forEach((channel) => {
+			const name = channel.getAttribute('data-name')?.toLowerCase() || '';
+			const isVisible = name.includes(query);
+			(channel as HTMLElement).style.display = isVisible ? 'flex' : 'none';
+			if (isVisible) visibleCount++;
+		});
+
+		// Ocultar categorías vacías
+		document.querySelectorAll('.category-group').forEach((group) => {
+			const visibleChannels = group.querySelectorAll('.channel-item[style="display: flex;"]').length;
+			(group as HTMLElement).style.display = visibleChannels > 0 || query === '' ? 'block' : 'none';
+		});
+
+		if (channelCountEl) {
+			channelCountEl.textContent = `${visibleCount} canales encontrados`;
+		}
+	});
+
+	// Parser M3U
+	function parseM3U(content: string): Array<{id: string; name: string; url: string; logo: string; category: string}> {
+		const lines = content.split('\n');
+		const channels: Array<{id: string; name: string; url: string; logo: string; category: string}> = [];
+		let currentChannel: {name: string; logo: string; category: string} | null = null;
+
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i].trim();
+
+			if (line.startsWith('#EXTINF:')) {
+				// Extraer información del canal
+				const nameMatch = line.match(/,(.+)$/);
+				const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+				const categoryMatch = line.match(/group-title="([^"]+)"/);
+
+				currentChannel = {
+					name: nameMatch ? nameMatch[1].trim() : `Canal ${channels.length + 1}`,
+					logo: logoMatch ? logoMatch[1] : '📺',
+					category: categoryMatch ? categoryMatch[1] : 'General'
+				};
+			} else if (line && !line.startsWith('#') && currentChannel) {
+				channels.push({
+					id: `ch-${channels.length + 1}`,
+					name: currentChannel.name,
+					url: line,
+					logo: currentChannel.logo.startsWith('http') ? '📺' : currentChannel.logo,
+					category: currentChannel.category
+				});
+				currentChannel = null;
+			}
+		}
+
+		return channels;
+	}
+
+	// Renderizar canales desde M3U
+	function renderChannels(channels: Array<{id: string; name: string; url: string; logo: string; category: string}>) {
+		if (!channelList) return;
+
+		const categories = [...new Set(channels.map(ch => ch.category))];
+		
+		channelList.innerHTML = categories.map(category => `
+			<div class="category-group" data-category="${category}">
+				<h3 class="category-title">${category}</h3>
+				<div class="category-channels">
+					${channels.filter(ch => ch.category === category).map(channel => `
+						<button 
+							class="channel-item" 
+							data-url="${channel.url}"
+							data-name="${channel.name}"
+							data-id="${channel.id}"
+						>
+							<span class="channel-logo">${channel.logo}</span>
+							<span class="channel-name">${channel.name}</span>
+							<span class="play-icon">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+									<polygon points="5 3 19 12 5 21 5 3"/>
+								</svg>
+							</span>
+						</button>
+					`).join('')}
+				</div>
+			</div>
+		`).join('');
+
+		if (channelCountEl) {
+			channelCountEl.textContent = `${channels.length} canales disponibles`;
+		}
+	}
+
+	// Cargar archivo M3U
+	m3uInput?.addEventListener('change', async (e) => {
+		const file = (e.target as HTMLInputElement).files?.[0];
+		if (!file) return;
+
+		try {
+			const content = await file.text();
+			const channels = parseM3U(content);
+			if (channels.length > 0) {
+				renderChannels(channels);
+				toast.success(`¡${channels.length} canales cargados exitosamente!`, 'Lista M3U');
+			} else {
+				toast.warning('No se encontraron canales en el archivo.', 'Lista vacía');
+			}
+		} catch (error) {
+			console.error('Error loading M3U:', error);
+			toast.error('Error al cargar el archivo M3U', 'Error');
+		}
+	});
+
+	// Cargar M3U desde URL
+	loadUrlBtn?.addEventListener('click', async () => {
+		const url = m3uUrlInput?.value.trim();
+		if (!url) {
+			toast.warning('Por favor ingresa una URL válida', 'URL requerida');
+			return;
+		}
+
+		try {
+			const response = await fetch(url);
+			if (!response.ok) throw new Error('Error al obtener el archivo');
+			
+			const content = await response.text();
+			const channels = parseM3U(content);
+			if (channels.length > 0) {
+				renderChannels(channels);
+				toast.success(`¡${channels.length} canales cargados exitosamente!`, 'Lista M3U');
+			} else {
+				toast.warning('No se encontraron canales en la URL.', 'Lista vacía');
+			}
+		} catch (error) {
+			console.error('Error loading M3U from URL:', error);
+			toast.error('Error al cargar el archivo M3U desde la URL. Verifica que la URL sea correcta y permita CORS.', 'Error de conexión');
+		}
+	});
+
+	// Pantalla completa
+	fullscreenBtn?.addEventListener('click', () => {
+		if (videoWrapper) {
+			if (document.fullscreenElement) {
+				document.exitFullscreen();
+			} else {
+				videoWrapper.requestFullscreen();
+			}
+		}
+	});
+
+	// Toggle sidebar en móvil
+	toggleSidebarBtn?.addEventListener('click', () => {
+		sidebarSection?.classList.toggle('hidden');
+	});
+
+	// Teclado: espacio para pausar/reproducir
+	document.addEventListener('keydown', (e) => {
+		if (e.code === 'Space' && document.activeElement?.tagName !== 'INPUT') {
+			e.preventDefault();
+			if (video?.paused) {
+				video.play();
+			} else {
+				video?.pause();
+			}
+		}
+	});
+</script>

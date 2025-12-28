@@ -1,0 +1,63 @@
+---
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  id: string;
+  label: string;
+  icon?: string;
+  options: Option[];
+  placeholder?: string;
+}
+
+const { id, label, icon = "", options, placeholder = "Seleccionar..." } = Astro.props;
+---
+
+<div class="filter-group">
+  <label for={id}>{icon} {label}</label>
+  <select id={id}>
+    <option value="">{placeholder}</option>
+    {options.map(option => (
+      <option value={option.value}>{option.label}</option>
+    ))}
+  </select>
+</div>
+
+<style>
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .filter-group label {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+  }
+
+  .filter-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .filter-group select:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.5);
+  }
+
+  .filter-group select option {
+    background: #1a1a2e;
+    color: white;
+  }
+</style>
