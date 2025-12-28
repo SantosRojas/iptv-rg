@@ -3,10 +3,11 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import VideoPlayer from '../components/VideoPlayer.astro';
 import ChannelList from '../components/ChannelList.astro';
+import { APP_CONFIG, getPageTitle } from '@config/app';
 ---
 
-<Layout title="IPTV Player - Tu TV en línea">
-	<Header title="IPTV Player" />
+<Layout title={getPageTitle(APP_CONFIG.TAGLINE)}>
+	<Header />
 	
 	<main class="main-content">
 		<div class="content-grid">
@@ -21,7 +22,7 @@ import ChannelList from '../components/ChannelList.astro';
 	</main>
 
 	<footer class="main-footer">
-		<p>🎬 IPTV Player | Carga tu lista M3U para ver tus canales favoritos</p>
+		<p>🎬 {APP_CONFIG.NAME} | {APP_CONFIG.FOOTER_TEXT}</p>
 	</footer>
 </Layout>
 

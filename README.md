@@ -1,8 +1,8 @@
-# 📺 IPTV Player
+# 📺 RGTV
 
 Un reproductor de televisión en línea moderno construido con **Astro** y **TypeScript**, que permite ver canales de TV de todo el mundo de forma gratuita.
 
-![IPTV Player](https://img.shields.io/badge/Astro-5.x-purple?style=flat-square&logo=astro)
+![RGTV](https://img.shields.io/badge/Astro-5.x-purple?style=flat-square&logo=astro)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=flat-square&logo=typescript)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 

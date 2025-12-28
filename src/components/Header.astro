@@ -1,9 +1,11 @@
 ---
+import { APP_CONFIG } from '@config/app';
+
 interface Props {
 	title?: string;
 }
 
-const { title = "IPTV Player" } = Astro.props;
+const { title = APP_CONFIG.NAME } = Astro.props;
 ---
 
 <header class="main-header">

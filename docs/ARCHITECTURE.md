@@ -1,4 +1,4 @@
-# Arquitectura del Proyecto IPTV Player
+# Arquitectura del Proyecto RGTV
 
 Este proyecto implementa una **Arquitectura Limpia (Clean Architecture)** para facilitar el mantenimiento, testing y escalabilidad.
 
